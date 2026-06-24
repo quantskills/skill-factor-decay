@@ -12,7 +12,11 @@ import pandas as pd
 from scipy.stats import spearmanr
 from scipy.optimize import curve_fit
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]  # scripts/ → skill/ → skills/ → .claude/ → quantskills/
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_SKILLS_DIR = _SCRIPT_DIR.parent.parent
+_PANDADATA_SCRIPTS = _SKILLS_DIR / "skill-pandadata-api" / "scripts"
+if _PANDADATA_SCRIPTS.is_dir():
+    sys.path.insert(0, str(_PANDADATA_SCRIPTS))
 
 HORIZONS = [1, 3, 5, 10, 20]
 N_BOOTSTRAP = 1000
@@ -122,15 +126,18 @@ def compute_q_spread(signal, fwd_ret, n_groups=5):
     return np.mean(spreads), np.mean(q5_rets), np.mean(q1_rets)
 
 
-def compute_forward_returns():
-    """从 Pandadata 拉取日线并计算多期限 forward returns（带缓存）"""
-    sys.path.insert(0, str(PROJECT_ROOT / ".claude/skills/skill-pandadata-api/scripts"))
-    from pandadata_runtime import init_pandadata
+def compute_forward_returns(start_date="20201201", end_date="20250131", indicator="000300"):
+    """从 Pandadata 拉取日线并计算多期限 forward returns"""
+    try:
+        from pandadata_runtime import init_pandadata
+    except ImportError:
+        print('❌ 无法导入 pandadata_runtime。请确保 skill-pandadata-api 已安装。')
+        sys.exit(1)
     pd_api = init_pandadata()
 
     raw = pd_api.get_stock_daily(
-        start_date=args.start_date, end_date=args.end_date,
-        fields=[], indicator=args.indicator, st=False,
+        start_date=start_date, end_date=end_date,
+        fields=[], indicator=indicator, st=False,
     )
     raw["date"] = pd.to_datetime(raw["date"], format="%Y%m%d")
     raw.columns = [c.lower() for c in raw.columns]
@@ -239,12 +246,12 @@ def analyze_factor(name, signal, fwd_rets):
 
 def main():
     parser = argparse.ArgumentParser(description="因子衰减分析")
-    parser.add_argument("--factor-dir", default=str(PROJECT_ROOT / "data/factors"),
-                        help="因子目录（原始因子或正交化后因子）")
-    parser.add_argument("--report-dir", default=str(PROJECT_ROOT / "data/decay_reports"),
+    parser.add_argument("--factor-dir", default="data/factors",
+                        help="因子目录（原始因子或正交化后因子，相对于工作目录或绝对路径）")
+    parser.add_argument("--report-dir", default="data/decay_reports",
                         help="报告输出目录")
-    parser.add_argument("--composite-only", action="store_true",
-                        help="仅分析等权合成因子")
+    parser.add_argument("--max-factors", type=int, default=3,
+                        help="最多分析的单个因子数量（0=仅合成因子, -1=全部）")
     parser.add_argument("--indicator", default="000300",
                         help="Pandadata 股票池指数代码 (默认 000300=沪深300)")
     parser.add_argument("--start-date", default="20201201",
@@ -262,7 +269,7 @@ def main():
     print("=" * 60)
 
     print("\n[1] 计算多期限 forward returns...")
-    fwd_rets = compute_forward_returns()
+    fwd_rets = compute_forward_returns(args.start_date, args.end_date, args.indicator)
     print(f"    {len(fwd_rets)} 行, horizons={HORIZONS}")
 
     print(f"\n[2] 加载因子: {factor_dir}")
@@ -278,8 +285,9 @@ def main():
     print(f"    {len(composite)} 个样本")
 
     targets = {"composite_equal": composite}
-    if not args.composite_only:
-        for k in list(factors.keys())[:3]:  # 前 3 个代表
+    if args.max_factors != 0:
+        n = None if args.max_factors < 0 else args.max_factors
+        for k in list(factors.keys())[:n]:
             targets[k] = factors[k]
 
     print(f"\n[4] 分析 {len(targets)} 个目标...")
