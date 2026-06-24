@@ -129,8 +129,8 @@ def compute_forward_returns():
     pd_api = init_pandadata()
 
     raw = pd_api.get_stock_daily(
-        start_date="20201201", end_date="20250131",
-        fields=[], indicator="000300", st=False,
+        start_date=args.start_date, end_date=args.end_date,
+        fields=[], indicator=args.indicator, st=False,
     )
     raw["date"] = pd.to_datetime(raw["date"], format="%Y%m%d")
     raw.columns = [c.lower() for c in raw.columns]
@@ -245,6 +245,12 @@ def main():
                         help="报告输出目录")
     parser.add_argument("--composite-only", action="store_true",
                         help="仅分析等权合成因子")
+    parser.add_argument("--indicator", default="000300",
+                        help="Pandadata 股票池指数代码 (默认 000300=沪深300)")
+    parser.add_argument("--start-date", default="20201201",
+                        help="Pandadata 起始日期 YYYYMMDD")
+    parser.add_argument("--end-date", default="20250131",
+                        help="Pandadata 结束日期 YYYYMMDD")
     args = parser.parse_args()
 
     factor_dir = Path(args.factor_dir)
