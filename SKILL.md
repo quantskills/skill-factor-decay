@@ -32,6 +32,62 @@ quantSkills:
   repository: https://github.com/quantskills/skill-factor-decay
 ---
 
+```json qsh-form
+{
+  "version": 1,
+  "task": {
+    "placeholder": "补充因子信号文件、样本区间、训练/验证/测试划分或衰减诊断要求"
+  },
+  "fields": [
+    {
+      "key": "factor",
+      "label": "内置因子",
+      "type": "select",
+      "default": "momentum_20",
+      "help": "填写自定义表达式时以表达式为准",
+      "options": [
+        { "value": "momentum_20", "label": "动量（20日）" },
+        { "value": "reversal_5", "label": "反转（5日）" },
+        { "value": "lowvol_20", "label": "低波动（20日）" },
+        { "value": "alpha101_101", "label": "Alpha101 #101" },
+        { "value": "alpha101_12", "label": "Alpha101 #12" },
+        { "value": "corr_open_vol", "label": "量价背离" }
+      ]
+    },
+    {
+      "key": "expr",
+      "label": "自定义因子表达式",
+      "type": "textarea",
+      "placeholder": "如：-1 * correlation(rank(open), rank(volume), 10)"
+    },
+    {
+      "key": "universe",
+      "label": "股票池",
+      "type": "select",
+      "default": "000300.SH",
+      "options": [
+        { "value": "000300.SH", "label": "沪深300" },
+        { "value": "000905.SH", "label": "中证500" },
+        { "value": "399006.SZ", "label": "创业板指" },
+        { "value": "000852.SH", "label": "中证1000" }
+      ]
+    },
+    {
+      "key": "horizon",
+      "label": "衰减期限组",
+      "type": "select",
+      "default": "1,3,5,10,20",
+      "options": [
+        { "value": "1,3,5,10,20", "label": "标准：1/3/5/10/20日" },
+        { "value": "1,2,3,5,10", "label": "短周期：1/2/3/5/10日" },
+        { "value": "5,10,20,40,60", "label": "中长周期：5/10/20/40/60日" }
+      ]
+    }
+  ],
+  "prompt_template": "{{#task}}任务与材料：\n{{task}}\n\n{{/task}}{{#attachments}}用户上传的材料（已放入工作区）：\n{{attachments}}\n\n{{/attachments}}请分析内置因子 {{factor}}{{#expr}}（以自定义表达式 {{expr}} 为准）{{/expr}} 在股票池 {{universe}}、预测期限 {{horizon}} 日的信号衰减。计算逐日截面 Rank IC 曲线、衰减模型与 Bootstrap 半衰期置信区间，并联动检查换手和 Q5-Q1 收益衰减、符号反转及训练测试隔离，给出信号保质期与再平衡频率建议，输出中文报告。"
+}
+```
+
 # 因子衰减分析 (Factor Decay Analysis)
 
 > 给定一个截面因子信号 `[date × symbol × factor_value]` 和多期限 forward returns，分析其预测能力随持有期的衰减特征，回答：**这个因子能用多久、多久该换一次**。
