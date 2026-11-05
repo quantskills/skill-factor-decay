@@ -71,3 +71,6 @@ Quality gate between orthogonalization and multi-factor blending. Fast-decaying 
 ## 📜 License
 
 GPL-3.0. Copyright (C) 2026 QuantSkills.
+
+
+Pandadata compatibility maintenance: [abgyjaguo](https://github.com/abgyjaguo). Existing authorship is retained.

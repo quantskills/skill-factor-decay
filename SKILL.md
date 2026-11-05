@@ -28,7 +28,7 @@ quantSkills:
   maintainer_type: community
   summary_zh: 因子衰减分析：多期限 Rank IC 衰减曲线 → 指数/幂律/双指数拟合 → Bootstrap 半衰期置信区间 → 换手衰减 + Q5-Q1 分组收益衰减 → 推荐最优再平衡频率。已对接 Pandadata 计算 1d/3d/5d/10d/20d 五期限 forward returns。
   summary_en: Factor decay analysis with multi-horizon Rank IC curves, exponential/power-law/bi-exponential fitting, bootstrap half-life CIs, turnover decay, and Q5-Q1 group-return decay. Recommends optimal rebalancing frequency. Integrated with Pandadata for 5-horizon forward returns.
-  license: GPL-3.0
+  license: GPL-3.0-only
   repository: https://github.com/quantskills/skill-factor-decay
 ---
 
@@ -239,3 +239,7 @@ data/factors/F*.parquet (or factors_orthogonalized/) → 因子信号
 - **已知限制**：衰减特征高度依赖样本期和市场状态；半衰期在不同牛熊市中可能显著不同；单一时间窗口的衰减分析不能替代滚动窗口的稳定性检验。
 - **风险边界**：衰减报告中的半衰期和最优再平衡频率仅反映历史数据统计特征，不代表未来表现。
 - **用途定位**：仅供量化研究、教育与方法论参考。不构成任何形式的投资建议、交易信号或获利保证。
+
+## Pandadata compatibility
+
+[Pandadata 1.0.6 compatibility](references/pandadata-compatibility.md) — exact SDK baseline, validation scope, and shared guidance for all supported agent runtimes.
